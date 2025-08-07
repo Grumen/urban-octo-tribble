@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Магазин</title>
+    <meta charset="utf-8">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .item { margin-bottom: 20px; }
+        button { padding: 10px 20px; }
+    </style>
+</head>
+<body>
+    <h2>Витрина товаров</h2>
+    <div class="item">
+        <b>Пицца</b> — 500₽<br>
+        <button onclick="order('Пицца', 500)">Купить</button>
+    </div>
+    <div class="item">
+        <b>Суши</b> — 300₽<br>
+        <button onclick="order('Суши', 300)">Купить</button>
+    </div>
+    <script>
+        function order(item, price) {
+            // Отправляем данные в бота
+            Telegram.WebApp.sendData(JSON.stringify({item, price}));
+        }
+    </script>
+</body>
+</html>
