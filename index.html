@@ -1,13 +1,25 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Магазин</title>
+    <title>Витрина</title>
     <meta charset="utf-8">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { font-family: Arial, sans-serif; padding: 20px; }
+        body {
+            background: var(--tg-theme-bg-color, #fff);
+            color: var(--tg-theme-text-color, #222);
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
         .item { margin-bottom: 20px; }
-        button { padding: 10px 20px; }
+        button {
+            padding: 10px 20px;
+            background: var(--tg-theme-button-color, #2aabee);
+            color: var(--tg-theme-button-text-color, #fff);
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -21,9 +33,16 @@
         <button onclick="order('Суши', 300)">Купить</button>
     </div>
     <script>
+        // Telegram WebApp API
+        Telegram.WebApp.ready();
+
         function order(item, price) {
-            // Отправляем данные в бота
-            Telegram.WebApp.sendData(JSON.stringify({item, price}));
+            // Показываем основную кнопку Telegram
+            Telegram.WebApp.MainButton.setText(`Оформить заказ: ${item} (${price}₽)`);
+            Telegram.WebApp.MainButton.show();
+            Telegram.WebApp.MainButton.onClick(function() {
+                Telegram.WebApp.sendData(JSON.stringify({item, price}));
+            });
         }
     </script>
 </body>
