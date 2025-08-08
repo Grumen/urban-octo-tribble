@@ -12,12 +12,32 @@
             margin: 0;
             padding: 0;
         }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 16px;
+            background: var(--tg-theme-secondary-bg-color, #f5f5f5);
+        }
+        .header h2 {
+            margin: 0;
+            font-size: 22px;
+        }
+        #cartBtn {
+            font-size: 18px;
+            padding: 6px 16px;
+            background: var(--tg-theme-button-color, #2aabee);
+            color: var(--tg-theme-button-text-color, #fff);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
         .container {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 8px;
-    padding: 8px;
-}
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 8px;
+            padding: 8px;
+        }
         .card {
             min-width: 0;
             border-radius: 12px;
@@ -29,12 +49,12 @@
             align-items: center;
         }
         .card img {
-    width: 220px;
-    height: 220px;
-    object-fit: cover;
-    border-radius: 8px;
-    margin-bottom: 8px;
-}
+            width: 220px;
+            height: 220px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
         .card-title {
             font-weight: bold;
             margin-bottom: 4px;
@@ -53,7 +73,7 @@
             cursor: pointer;
             font-size: 15px;
         }
-        /* Модальное окно */
+        /* Модальные окна */
         .modal {
             display: none;
             position: fixed;
@@ -80,25 +100,53 @@
             cursor: pointer;
             color: var(--tg-theme-hint-color, #888);
         }
+        .cart-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            background: var(--tg-theme-secondary-bg-color, #f5f5f5);
+            border-radius: 8px;
+            padding: 6px 8px;
+        }
+        .cart-item img {
+            width: 50px;
+            height: 50px;
+            border-radius: 6px;
+            margin-right: 10px;
+        }
+        .cart-item button {
+            margin-left: auto;
+            background: none;
+            border: none;
+            font-size: 18px;
+            color: #d00;
+            cursor: pointer;
+        }
         @media (max-width: 600px) {
-    .container {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    .card img {
-        width: 140px;
-        height: 140px;
-    }
-}
+            .container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .card img {
+                width: 140px;
+                height: 140px;
+            }
+        }
     </style>
 </head>
 <body>
+    <div class="header">
+        <h2>Витрина</h2>
+        <button id="cartBtn" onclick="openCart()">🛒 Корзина (<span id="cartCount">0</span>)</button>
+    </div>
     <div class="container" id="products"></div>
 
     <!-- Модальное окно заказа -->
     <div class="modal" id="orderModal">
-        <div class="modal-content" id="modalContent">
-            <!-- Динамически наполняется JS -->
-        </div>
+        <div class="modal-content" id="modalContent"></div>
+    </div>
+    <!-- Модальное окно корзины -->
+    <div class="modal" id="cartModal">
+        <div class="modal-content" id="cartContent"></div>
     </div>
 
     <script>
@@ -141,6 +189,12 @@
             }
         ];
 
+        let cart = [];
+
+        function updateCartCount() {
+            document.getElementById('cartCount').innerText = cart.length;
+        }
+
         // Рендерим плитки товаров
         const productsDiv = document.getElementById('products');
         products.forEach(product => {
@@ -155,7 +209,7 @@
             productsDiv.appendChild(card);
         });
 
-        // Открыть модальное окно заказа
+        // Открыть модалку заказа
         window.openOrder = function(productId) {
             const product = products.find(p => p.id === productId);
             let qty = 1;
@@ -176,8 +230,21 @@
                         <button class="qty-btn" onclick="changeQty(1)">+</button>
                     </div>
                     <div class="ingredients"><b>Доп. ингредиенты:</b><br>${ingrHtml}</div>
+                    <button id="addToCartBtn" style="margin-top:12px;padding:10px 24px;font-size:16px;">Добавить в корзину</button>
                 `;
                 updateOrder();
+                document.getElementById('addToCartBtn').onclick = function() {
+                    let total = product.price + Array.from(document.querySelectorAll('#modalContent input[type=checkbox]:checked')).reduce((sum, cb) => sum + Number(cb.getAttribute('data-price')), 0);
+                    cart.push({
+                        item: product.name,
+                        price: total * qty,
+                        count: qty,
+                        ingredients: selected.slice(),
+                        img: product.img
+                    });
+                    updateCartCount();
+                    closeModal();
+                };
             }
 
             window.changeQty = function(delta) {
@@ -190,19 +257,7 @@
                 selected = Array.from(document.querySelectorAll('#modalContent input[type=checkbox]:checked')).map(cb => cb.value);
                 let total = product.price + Array.from(document.querySelectorAll('#modalContent input[type=checkbox]:checked')).reduce((sum, cb) => sum + Number(cb.getAttribute('data-price')), 0);
                 document.getElementById('modalPrice').innerText = total * qty;
-                Telegram.WebApp.MainButton.setText(`Оформить заказ на ${total * qty}₽`);
-                Telegram.WebApp.MainButton.show();
             };
-
-            Telegram.WebApp.MainButton.onClick(function() {
-                let total = product.price + Array.from(document.querySelectorAll('#modalContent input[type=checkbox]:checked')).reduce((sum, cb) => sum + Number(cb.getAttribute('data-price')), 0);
-                Telegram.WebApp.sendData(JSON.stringify({
-                    item: product.name,
-                    price: total * qty,
-                    count: qty,
-                    ingredients: selected
-                }));
-            });
 
             document.getElementById('orderModal').style.display = 'flex';
             renderModal();
@@ -213,10 +268,56 @@
             Telegram.WebApp.MainButton.hide();
         };
 
+        // Открыть корзину
+        window.openCart = function() {
+            let html = `<span class="close-btn" onclick="closeCart()">&times;</span>
+                <h3>Корзина</h3>`;
+            if (cart.length === 0) {
+                html += `<p>Корзина пуста.</p>`;
+            } else {
+                let total = 0;
+                html += `<div>`;
+                cart.forEach((item, i) => {
+                    total += item.price;
+                    html += `
+                        <div class="cart-item">
+                            <img src="${item.img}">
+                            <div>
+                                <b>${item.item}</b> x${item.count}<br>
+                                ${item.ingredients.length ? 'Ингр.: ' + item.ingredients.join(', ') + '<br>' : ''}
+                                <span>${item.price}₽</span>
+                            </div>
+                            <button onclick="removeFromCart(${i})" title="Удалить">✖️</button>
+                        </div>
+                    `;
+                });
+                html += `</div>
+                    <div style="margin-top:10px;"><b>Итого: ${total}₽</b></div>
+                    <button id="checkoutBtn" style="margin-top:12px;padding:10px 24px;font-size:16px;width:100%;">Оформить заказ</button>
+                `;
+            }
+            document.getElementById('cartContent').innerHTML = html;
+            document.getElementById('cartModal').style.display = 'flex';
+
+            if (cart.length > 0) {
+                document.getElementById('checkoutBtn').onclick = function() {
+                    Telegram.WebApp.sendData(JSON.stringify({cart}));
+                };
+            }
+        };
+
+        window.closeCart = function() {
+            document.getElementById('cartModal').style.display = 'none';
+        };
+
+        window.removeFromCart = function(index) {
+            cart.splice(index, 1);
+            updateCartCount();
+            openCart();
+        };
+
         // Скрыть MainButton при открытии главной
         Telegram.WebApp.MainButton.hide();
     </script>
 </body>
 </html>
-
-
