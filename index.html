@@ -13,11 +13,11 @@
             padding: 0;
         }
         .container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-            gap: 8px; /* Меньше расстояние между плитками */
-            padding: 8px;
-        }
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 8px;
+    padding: 8px;
+}
         .card {
             min-width: 0;
             border-radius: 12px;
@@ -29,12 +29,12 @@
             align-items: center;
         }
         .card img {
-            width: 180px;
-            height: 180px;
-            object-fit: cover;
-            border-radius: 8px;
-            margin-bottom: 8px;
-        }
+    width: 220px;
+    height: 220px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-bottom: 8px;
+}
         .card-title {
             font-weight: bold;
             margin-bottom: 4px;
@@ -81,14 +81,14 @@
             color: var(--tg-theme-hint-color, #888);
         }
         @media (max-width: 600px) {
-            .container {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            .card img {
-                width: 90px;
-                height: 90px;
-            }
-        }
+    .container {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .card img {
+        width: 140px;
+        height: 140px;
+    }
+}
     </style>
 </head>
 <body>
@@ -168,7 +168,7 @@
                 document.getElementById('modalContent').innerHTML = `
                     <span class="close-btn" onclick="closeModal()">&times;</span>
                     <h3>${product.name}</h3>
-                    <img src="${product.img}" alt="${product.name}" style="width:100px;border-radius:8px;margin-bottom:10px;">
+                    <img src="${product.img}" alt="${product.name}" style="width:200px;border-radius:8px;margin-bottom:10px;">
                     <div><b>Цена:</b> <span id="modalPrice">${product.price}</span>₽</div>
                     <div><b>Количество:</b>
                         <button class="qty-btn" onclick="changeQty(-1)">-</button>
@@ -218,4 +218,5 @@
     </script>
 </body>
 </html>
+
 
