@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Витрина</title>
     <meta charset="utf-8">
+    <title>Витрина</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body {
@@ -12,38 +12,61 @@
             padding: 20px;
         }
         .item { margin-bottom: 20px; }
-        button {
-            padding: 10px 20px;
-            background: var(--tg-theme-button-color, #2aabee);
-            color: var(--tg-theme-button-text-color, #fff);
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-        }
+        .qty-btn { width: 30px; height: 30px; }
+        .ingredients { margin: 10px 0; }
+        label { margin-right: 10px; }
     </style>
 </head>
 <body>
-    <h2>Витрина товаров</h2>
+    <h2>Пицца</h2>
     <div class="item">
-        <b>Пицца</b> — 500₽<br>
-        <button onclick="order('Пицца', 500)">Купить</button>
-    </div>
-    <div class="item">
-        <b>Суши</b> — 300₽<br>
-        <button onclick="order('Суши', 300)">Купить</button>
+        <b>Цена:</b> <span id="price">500</span>₽<br>
+        <b>Количество:</b>
+        <button class="qty-btn" onclick="changeQty(-1)">-</button>
+        <span id="qty">1</span>
+        <button class="qty-btn" onclick="changeQty(1)">+</button>
+        <div class="ingredients">
+            <b>Доп. ингредиенты:</b><br>
+            <label><input type="checkbox" value="сыр" onchange="updateOrder()"> Сыр (+50₽)</label>
+            <label><input type="checkbox" value="бекон" onchange="updateOrder()"> Бекон (+70₽)</label>
+            <label><input type="checkbox" value="грибы" onchange="updateOrder()"> Грибы (+40₽)</label>
+        </div>
     </div>
     <script>
-        // Telegram WebApp API
         Telegram.WebApp.ready();
 
-        function order(item, price) {
-            // Показываем основную кнопку Telegram
-            Telegram.WebApp.MainButton.setText(`Оформить заказ: ${item} (${price}₽)`);
-            Telegram.WebApp.MainButton.show();
-            Telegram.WebApp.MainButton.onClick(function() {
-                Telegram.WebApp.sendData(JSON.stringify({item, price}));
-            });
+        let basePrice = 500;
+        let qty = 1;
+        let ingredients = [];
+        let ingredientPrices = { "сыр": 50, "бекон": 70, "грибы": 40 };
+
+        function changeQty(delta) {
+            qty = Math.max(1, qty + delta);
+            document.getElementById('qty').innerText = qty;
+            updateOrder();
         }
+
+        function updateOrder() {
+            ingredients = Array.from(document.querySelectorAll('input[type=checkbox]:checked')).map(cb => cb.value);
+            let total = basePrice + ingredients.reduce((sum, ing) => sum + ingredientPrices[ing], 0);
+            document.getElementById('price').innerText = total * qty;
+            // Обновляем MainButton
+            Telegram.WebApp.MainButton.setText(`Оформить заказ на ${total * qty}₽`);
+            Telegram.WebApp.MainButton.show();
+        }
+
+        Telegram.WebApp.MainButton.onClick(function() {
+            let total = basePrice + ingredients.reduce((sum, ing) => sum + ingredientPrices[ing], 0);
+            Telegram.WebApp.sendData(JSON.stringify({
+                item: "Пицца",
+                price: total * qty,
+                count: qty,
+                ingredients: ingredients
+            }));
+        });
+
+        // Инициализация
+        updateOrder();
     </script>
 </body>
 </html>
